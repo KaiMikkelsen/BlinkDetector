@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 plt.close('all')
 # Import and change (optional) settings
 settings = blink.Settings()
-settings.plot_on = False
+settings.plot_on = True
 
 # Remove outliers (pupil size values < 2 mm)
 # and > 2.5 SD from the mean of sample in a window
@@ -26,10 +26,11 @@ bd = blink.BlinkDetector(settings)
 
 eyes = ['left', 'right']
 
-dataset = 'Spectrum'
+dataset = 'Fusion'
 cwd = Path.cwd()
-path_spectrum = cwd / 'data' / 'spectrum'
-path_fusion = cwd / 'data' / 'fusion'
+path_spectrum = cwd / 'data' / 'spectrum' #/ 'andrii'
+#path_fusion = cwd / 'data' / 'fusion' #/ 'andrii'
+path_fusion = cwd / 'data' / 'andrii' #/ 'andrii'
 
 # %% Run classification for the 12 participants recorded in the DC
 if 'Spectrum' in dataset:
@@ -129,25 +130,26 @@ else:
             pid_name = filename.split('-')[0].strip()
             filename = filename.split('-')[1].strip()
 
-            print(file)
             df = pd.read_csv(Path(file), sep='\t', decimal = ',')
-            eye_openness_signal = np.c_[df[key]]
-            eye_openness_signal = np.squeeze(eye_openness_signal)
+            # eye_openness_signal = np.c_[df[key]]
+            # eye_openness_signal = np.squeeze(eye_openness_signal)
 
             pupil_signal = np.array(df[f'Pupil diameter {eye}'])
             t = np.array(df['Recording timestamp'])
             t = (t - t[0]) / 1000
 
+            pupil_signal = pd.to_numeric(pupil_signal, errors='coerce')
             nan_pupil = np.sum(np.isnan(pupil_signal)) / len(pupil_signal)
-            nan_eyeopenness = np.sum(np.isnan(eye_openness_signal)) / len(eye_openness_signal)
+
+            # nan_eyeopenness = np.sum(np.isnan(eye_openness_signal)) / len(eye_openness_signal)
 
             xy = np.c_[df[f'Gaze direction {eye} X'],
                         df[f'Gaze direction {eye} Y']]
 
-            df_out, eye_openness_signal_vel = bd.blink_detector_eo(t, eye_openness_signal, settings.Fs, filter_length=settings.filter_length,
-                                                             gap_dur=settings.gap_dur,
-                                                             width_of_blink=settings.width_of_blink,
-                                                             min_separation=settings.min_separation)
+            # df_out, eye_openness_signal_vel = bd.blink_detector_eo(t, eye_openness_signal, settings.Fs, filter_length=settings.filter_length,
+            #                                                  gap_dur=settings.gap_dur,
+            #                                                  width_of_blink=settings.width_of_blink,
+            #                                                  min_separation=settings.min_separation)
 
             df_out_pupil = bd.blink_detector_pupil(t, pupil_signal, settings.Fs,
                                                        gap_dur=settings.gap_dur,
@@ -156,8 +158,8 @@ else:
                                                        min_separation=settings.min_separation)
         if settings.plot_on:
                 bd.plot_blink_detection_results(t,
-                                             eye_openness_signal,
-                                             eye_openness_signal_vel,
+                                            #  eye_openness_signal,
+                                            #  eye_openness_signal_vel,
                                              df_out,
                                              pid_name,
                                              filename,
